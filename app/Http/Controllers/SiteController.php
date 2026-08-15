@@ -104,6 +104,8 @@ class SiteController extends Controller
             'warning_threshold' => ['required', 'numeric', 'min:1000', 'max:30000'],
             'down_threshold' => ['required', 'numeric', 'min:2000', 'max:60000'],
             'notify_user_interval' => ['required', 'numeric', 'min:0', 'max:60'],
+            'down_confirmations' => ['required', 'numeric', 'min:1', 'max:10'],
+            'up_confirmations' => ['required', 'numeric', 'min:1', 'max:10'],
         ]);
         $site->update($siteData);
 

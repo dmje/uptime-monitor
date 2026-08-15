@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\MonitoringLog;
 use App\Models\Site;
+use App\Services\SiteAlerter;
 use Carbon\Carbon;
 use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 use Illuminate\Bus\Queueable;
@@ -12,12 +13,15 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class RunCheck implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public $deleteWhenMissingModels = true;
 
     private $site;
 
@@ -26,7 +30,7 @@ class RunCheck implements ShouldQueue
         $this->site = $site;
     }
 
-    public function handle(): void
+    public function handle(SiteAlerter $siteAlerter): void
     {
         $site = $this->site;
         $start = microtime(true);
@@ -54,14 +58,20 @@ class RunCheck implements ShouldQueue
         $responseTime = round(($end - $start) * 1000); // Calculate response time in milliseconds
 
         // Log the monitoring result to the database
-        MonitoringLog::create([
+        $monitoringLog = MonitoringLog::create([
             'site_id' => $site->id,
             'url' => $site->url,
             'response_time' => $responseTime,
             'status_code' => $statusCode,
             'response_message' => $responseMessage,
         ]);
+
+        $transition = $site->registerCheckResult($monitoringLog);
         $site->last_check_at = Carbon::now();
         $site->save();
+
+        // Alert on the up/down transition only, so a site that stays down does
+        // not raise a new alert on every check.
+        $siteAlerter->alertTransition($site, $transition, $monitoringLog);
     }
 }
