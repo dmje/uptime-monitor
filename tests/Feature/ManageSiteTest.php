@@ -104,6 +104,8 @@ class ManageSiteTest extends TestCase
             'warning_threshold' => 5000,
             'down_threshold' => 10000,
             'notify_user_interval' => 0,
+            'down_confirmations' => 2,
+            'up_confirmations' => 2,
         ], $overrides);
     }
 

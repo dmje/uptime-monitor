@@ -7,7 +7,9 @@ Uptime Monitor is a self-hosted web monitoring tool, built with laravel.
 - Monitor your web uptime per minutes (or any time interval)
 - Record response time on each web
 - Show uptime badges in 3 colors: green for up, yellow for warning, red for down, based on response time
-- Send telegram notification when you site down for 5 minutes (based on check periode)
+- Send a telegram notification when a site goes down, and again when it comes back up
+- Only alert once a site has failed several checks in a row, so a single blip stays quiet
+- Remind you about a site that stays down on a backing off schedule, instead of every few minutes
 
 ## Why I need this?
 
@@ -73,11 +75,32 @@ In order to get notified in Telegram when the customer sites are down, we need t
     - Fill the Telegram Chat ID field with `your_chat_id`
     - Click Update Profile
     - Click **Test Telegram Chat** to test the telegram configuration
-1. By default, we will have **5 minutes** inteval when the customer sites are down. But we can change the interval per customer sites.
-    - Go to Customer Site menu
-    - Select one of the customer site and click Edit link
-    - Set the Notify User Interval field, between 0 to 60.
-    - Set the Notify User Interval field to 0 if you don't want to get notified.
+### How Alerting Works
+
+Alerts follow the status of a site, not each individual check:
+
+1. A check counts as **failed** when the request throws, the site answers with a
+   4xx or 5xx status, or the response is slower than the site Down Threshold.
+1. A site is only marked **down** after `Down Confirmations` failed checks in a
+   row (default 2), and back **up** after `Up Confirmations` successful checks in
+   a row (default 2). A single slow or failed check therefore raises nothing.
+1. You get one **🔴 DOWN** message when a site is marked down, and one
+   **🟢 BACK UP** message when it recovers, with the outage length.
+1. While a site stays down you get **🔴 STILL DOWN** reminders on a backing off
+   schedule, based on the `Reminder Interval` field: after 1x, 3x and 12x the
+   interval, then every 6 hours. With the default 5 minute interval that is
+   5 minutes, 15 minutes, 1 hour, then every 6 hours.
+1. Every message names the status that caused it, for example
+   `Status: HTTP 502 Bad Gateway` or `No response: cURL error 6 ...`, along with
+   the last few checks.
+
+These are all per site settings:
+
+- Go to Site menu
+- Select one of the sites and click Edit link
+- Set the Reminder Interval field, between 0 and 60. Set it to 0 to get down and
+  back up alerts only, with no reminders in between.
+- Set the Down Confirmations and Up Confirmations fields, between 1 and 10.
 
 ## Screenshot
 

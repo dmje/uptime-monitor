@@ -37,9 +37,31 @@
                         <tr>
                             <td>{{ __('site.notify_user_interval') }}</td>
                             <td>
-                                {{ __('time.every') }}
-                                {{ $site->notify_user_interval }}
-                                {{ trans_choice('time.minutes', $site->notify_user_interval) }}
+                                @if ($site->notify_user_interval > 0)
+                                    {{ __('time.every') }}
+                                    {{ $site->notify_user_interval }}
+                                    {{ trans_choice('time.minutes', $site->notify_user_interval) }}
+                                @else
+                                    &mdash;
+                                @endif
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>{{ __('site.down_confirmations') }}</td>
+                            <td>{{ $site->down_confirmations }} {{ __('site.checks') }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ __('site.up_confirmations') }}</td>
+                            <td>{{ $site->up_confirmations }} {{ __('site.checks') }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ __('site.current_status') }}</td>
+                            <td>
+                                @php($statusBadge = ['up' => 'success', 'down' => 'danger'][$site->status] ?? 'secondary')
+                                <span class="badge bg-{{ $statusBadge }}">{{ __('site.status_'.$site->status) }}</span>
+                                @if ($site->statusDurationForHumans())
+                                    <br>{{ $site->statusDurationForHumans() }}
+                                @endif
                             </td>
                         </tr>
                         <tr>
@@ -52,7 +74,7 @@
                         <tr>
                             <td>{{ __('site.last_notify_user_at') }}</td>
                             <td>
-                                {{ $site->last_check_at }} <br>
+                                {{ $site->last_notify_user_at }} <br>
                                 {{ optional($site->last_notify_user_at)->diffForHumans() }}
                             </td>
                         </tr>

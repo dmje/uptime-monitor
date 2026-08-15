@@ -81,6 +81,28 @@
                 </div>
                 <div class="row">
                     <div class="col-6">
+                        {!! FormField::text('down_confirmations', [
+                            'label' => __('site.down_confirmations'),
+                            'addon' => ['after' => __('site.checks')],
+                            'type' => 'number',
+                            'min' => 1,
+                            'max' => 10,
+                            'info' => ['text' => __('site.down_confirmations_form_info'), 'class' => 'primary'],
+                        ]) !!}
+                    </div>
+                    <div class="col-6">
+                        {!! FormField::text('up_confirmations', [
+                            'label' => __('site.up_confirmations'),
+                            'addon' => ['after' => __('site.checks')],
+                            'type' => 'number',
+                            'min' => 1,
+                            'max' => 10,
+                            'info' => ['text' => __('site.up_confirmations_form_info'), 'class' => 'primary'],
+                        ]) !!}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
                         {!! FormField::text('notify_user_interval', [
                             'label' => __('site.notify_user_interval'),
                             'addon' => ['before' => __('time.every'), 'after' => trans_choice('time.minutes', $site->notify_user_interval)],
