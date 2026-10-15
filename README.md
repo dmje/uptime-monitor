@@ -7,7 +7,7 @@ Uptime Monitor is a self-hosted web monitoring tool, built with laravel.
 - Monitor your web uptime per minutes (or any time interval)
 - Record response time on each web
 - Show uptime badges in 3 colors: green for up, yellow for warning, red for down, based on response time
-- Send a telegram notification when a site goes down, and again when it comes back up
+- Send a Telegram and/or ntfy notification when a site goes down, and again when it comes back up
 - Only alert once a site has failed several checks in a row, so a single blip stays quiet
 - Remind you about a site that stays down on a backing off schedule, instead of every few minutes
 
@@ -48,6 +48,10 @@ This application can be installed on local server and online server with these s
     DB_PASSWORD=secret
 
     TELEGRAM_NOTIFER_TOKEN=
+
+    # Optional, defaults to https://ntfy.sh
+    NTFY_SERVER=https://ntfy.sh
+    NTFY_TOKEN=
     ```
 1. Run database migration: `$ php artisan migrate --seed`
 1. Build assets: `$ npm run build`
@@ -75,6 +79,14 @@ In order to get notified in Telegram when the customer sites are down, we need t
     - Fill the Telegram Chat ID field with `your_chat_id`
     - Click Update Profile
     - Click **Test Telegram Chat** to test the telegram configuration
+### ntfy Setup
+
+[ntfy](https://ntfy.sh) is an alternative (or addition) to Telegram. Alerts are sent to every channel a user has configured.
+
+1. Pick a hard-to-guess topic name and subscribe to it in the ntfy app or web UI.
+1. Optionally set `NTFY_SERVER` in `.env` to your self-hosted server (default `https://ntfy.sh`), and `NTFY_TOKEN` if it needs an access token.
+1. Fill the **ntfy Topic** field in your Profile (letters, numbers, `-` and `_`) and click **Test ntfy Topic**.
+
 ### How Alerting Works
 
 Alerts follow the status of a site, not each individual check:

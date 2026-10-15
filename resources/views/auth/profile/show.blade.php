@@ -21,6 +21,15 @@
                             @endif
                         </td>
                     </tr>
+                    <tr>
+                        <td class="align-middle">{{ __('user.ntfy_topic') }}</td>
+                        <td class="align-middle">
+                            {{ $user->ntfy_topic }}
+                            @if (config('services.ntfy.server') && $user->ntfy_topic)
+                                @livewire('ntfy-test-button')
+                            @endif
+                        </td>
+                    </tr>
                 </tbody>
             </table>
             <div class="card-footer">

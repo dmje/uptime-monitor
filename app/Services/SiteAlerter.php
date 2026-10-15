@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\Log;
 
 class SiteAlerter
 {
-    public function __construct(private TelegramNotifier $notifier)
+    public function __construct(private TelegramNotifier $notifier, private NtfyNotifier $ntfy)
     {
     }
 
     public function isConfigured(): bool
     {
-        return $this->notifier->isConfigured();
+        return $this->notifier->isConfigured() || $this->ntfy->isConfigured();
     }
 
     /**
@@ -52,7 +52,7 @@ class SiteAlerter
         $text .= "\n".$this->nextReminderLine($site);
         $text .= "\n\nDetails: ".route('sites.show', [$site->id]);
 
-        $this->send($site, $text);
+        $this->send($site, $text, '🔴 DOWN: '.$site->name, 5);
     }
 
     public function alertStillDown(Site $site, ?MonitoringLog $monitoringLog): void
@@ -74,7 +74,7 @@ class SiteAlerter
         $text .= "\n".$this->nextReminderLine($site);
         $text .= "\n\nDetails: ".route('sites.show', [$site->id]);
 
-        $this->send($site, $text);
+        $this->send($site, $text, '🔴 STILL DOWN: '.$site->name, 4);
     }
 
     public function alertRecovered(Site $site, MonitoringLog $monitoringLog): void
@@ -94,7 +94,7 @@ class SiteAlerter
         $text .= "\n\n".$this->recentChecks($site);
         $text .= "\n\nDetails: ".route('sites.show', [$site->id]);
 
-        $this->send($site, $text);
+        $this->send($site, $text, '🟢 BACK UP: '.$site->name, 3);
     }
 
     /**
@@ -155,14 +155,23 @@ class SiteAlerter
         return $time ? $time->format('Y-m-d H:i:s') : 'n/a';
     }
 
-    private function send(Site $site, string $text): void
+    private function send(Site $site, string $text, string $title, int $priority): void
     {
-        $chatId = $site->owner->telegram_chat_id;
+        $owner = $site->owner;
+        $sent = false;
 
-        if (is_null($chatId)) {
-            Log::channel('daily')->info('Missing telegram_chat_id for site owner', $site->toArray());
-        } else {
-            $this->notifier->send($chatId, $text);
+        if (!is_null($owner->telegram_chat_id)) {
+            $this->notifier->send($owner->telegram_chat_id, $text);
+            $sent = true;
+        }
+
+        if (!is_null($owner->ntfy_topic) && $this->ntfy->isConfigured()) {
+            $this->ntfy->send($owner->ntfy_topic, $text, $title, $priority);
+            $sent = true;
+        }
+
+        if (!$sent) {
+            Log::channel('daily')->info('Missing telegram_chat_id and ntfy_topic for site owner', $site->toArray());
         }
 
         // Count the attempt either way, so a misconfigured site backs off

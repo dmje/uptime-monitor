@@ -28,6 +28,7 @@ class ProfileController extends Controller
             'name' => 'required|max:60',
             'email' => 'required|max:255|unique:users,email,'.auth()->id(),
             'telegram_chat_id' => 'nullable|string|max:255',
+            'ntfy_topic' => 'nullable|string|max:100|regex:/^[A-Za-z0-9_-]+$/',
         ]);
 
         $request->user()->update($userData);

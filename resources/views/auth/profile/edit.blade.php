@@ -17,6 +17,7 @@
                             {!! FormField::text('telegram_chat_id', ['label' => __('user.telegram_chat_id')]) !!}
                         </div>
                     </div>
+                    {!! FormField::text('ntfy_topic', ['label' => __('user.ntfy_topic')]) !!}
                 </div>
                 <div class="card-footer">
                     {{ Form::submit(__('user.profile_update'), ['class' => 'btn btn-warning']) }}
