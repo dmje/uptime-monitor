@@ -31,6 +31,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'ntfy' => [
+        'server' => env('NTFY_SERVER', 'https://ntfy.sh'),
+        'token' => env('NTFY_TOKEN'),
+    ],
+
     'telegram_notifier' => [
         'token' => env('TELEGRAM_NOTIFER_TOKEN'),
         'chat_id' => env('TELEGRAM_NOTIFER_CHAT_ID'),

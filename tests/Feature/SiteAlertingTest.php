@@ -30,6 +30,10 @@ class SiteAlertingTest extends TestCase
                 return Http::response(['ok' => true], 200);
             }
 
+            if (str_contains($request->url(), 'ntfy.sh')) {
+                return Http::response(['id' => 'x'], 200);
+            }
+
             return Http::response('', $this->siteStatusCode);
         });
     }
@@ -187,6 +191,24 @@ class SiteAlertingTest extends TestCase
         // The attempt is still counted, so reminders back off instead of
         // retrying on every scheduler run.
         $this->assertEquals(1, $site->fresh()->alert_count);
+    }
+
+    /** @test */
+    public function it_also_alerts_via_ntfy_when_the_owner_has_a_topic()
+    {
+        $owner = User::factory()->create(['telegram_chat_id' => null, 'ntfy_topic' => 'my-topic']);
+        $site = $this->createSite(['down_confirmations' => 1, 'owner_id' => $owner->id]);
+
+        RunCheck::dispatchSync($site);
+
+        $ntfy = collect(Http::recorded())
+            ->filter(fn ($record) => str_contains($record[0]->url(), 'ntfy.sh'))
+            ->map(fn ($record) => $record[0]->data());
+
+        $this->assertCount(1, $ntfy);
+        $this->assertEquals('my-topic', $ntfy->first()['topic']);
+        $this->assertStringContainsString('DOWN: '.$site->name, $ntfy->first()['title']);
+        $this->assertCount(0, $this->telegramMessages());
     }
 
     private function createSite(array $attributes = []): Site
